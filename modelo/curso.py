@@ -1,3 +1,5 @@
+# MODELO - Clase Curso
+# No utiliza ventanas, solamente maneja los datos de un curso.
 class Curso:
 
     def __init__(self, codigo, nombre, creditos, ciclo):
@@ -5,6 +7,8 @@ class Curso:
         self.set_nombre(nombre)
         self.set_creditos(creditos)
         self.set_ciclo(ciclo)
+        
+ # Setter y getter del código
 
     def set_codigo(self, codigo):
         self.__codigo = codigo
@@ -29,9 +33,11 @@ class Curso:
 
     def get_ciclo(self):
         return self.__ciclo
-
+    
+# representa la información del curso como texto.
+ # Se ejecuta cuando hacemos print(curso) o str(curso).
     def __str__(self):
-        return (f"Código: {self.__codigo} | "
-                f"Nombre: {self.__nombre} | "
-                f"Créditos: {self.__creditos} | "
-                f"Ciclo: {self.__ciclo}")
+        return f"Código: {self.get_codigo()} - " \
+               f"Nombre: {self.get_nombre()} - " \
+               f"Créditos: {self.get_creditos()} - " \
+               f"Ciclo: {self.get_ciclo()}
