@@ -34,7 +34,7 @@ class RegistroCurso:
         ciclo = ciclo.strip()
 
         # Verifica que ningún campo esté vacío.
-        # No se valida si los creditos están vacíos porque la Vista ya comprueba
+        #  Los créditos serán validados en el Controlador.
         
         if codigo == "" or nombre == "" or ciclo == "":
             return "Faltan datos por ingresar"
@@ -58,7 +58,7 @@ class RegistroCurso:
         nuevo_ciclo = nuevo_ciclo.strip()
 
         # Verifica que ningún campo esté vacío.
-        # Los créditos ya fueron validados en la Vista.
+        # Los créditos se validan en controlador.
         if codigo == "" or nuevo_nombre == "" or nuevo_ciclo == "":
             return "Faltan datos por ingresar"
 

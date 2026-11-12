@@ -40,4 +40,4 @@ class Curso:
         return f"Código: {self.get_codigo()} - " \
                f"Nombre: {self.get_nombre()} - " \
                f"Créditos: {self.get_creditos()} - " \
-               f"Ciclo: {self.get_ciclo()}
+               f"Ciclo: {self.get_ciclo()}"

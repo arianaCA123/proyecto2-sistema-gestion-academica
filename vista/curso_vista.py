@@ -120,10 +120,10 @@ class CursoVista:
 
         self.limpiar_campos()
 
-        self.__entrada_codigo.insert(0, curso.get_codigo())
+        self.__entrada_codigo.insert(0, curso.get_codigo())  #se usa insert() por que se introduce texto mediante (Entry)
         self.__entrada_nombre.insert(0, curso.get_nombre())
         self.__entrada_creditos.insert(0, str(curso.get_creditos()))
-        self.__entrada_ciclo.insert(0, curso.get_ciclo())
+        self.__entrada_ciclo.set(curso.get_ciclo())   # Se utiliza set() y no insert porque el ciclo es un Combobox y permite seleccionar una opción.
 
     # Limpia todos los campos del formulario.
     def limpiar_campos(self):
@@ -131,7 +131,7 @@ class CursoVista:
         self.__entrada_codigo.delete(0, tk.END)
         self.__entrada_nombre.delete(0, tk.END)
         self.__entrada_creditos.delete(0, tk.END)
-        self.__entrada_ciclo.delete(0, tk.END)
+        self.__entrada_ciclo.set("")    #.set("") deja vacío el Combobox.
 
     # Muestra los cursos registrados en la tabla.
     def mostrar_tabla(self, cursos):
@@ -160,6 +160,4 @@ class CursoVista:
     def salir(self):
         self.__ventana.destroy()
 
-    # Inicia la ventana.
-    def iniciar(self):
-        self.__ventana.mainloop()
+   
