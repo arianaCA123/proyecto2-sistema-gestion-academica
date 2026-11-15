@@ -12,7 +12,6 @@ class CursoVista:
         # Crea una ventana secundaria.
         self.__ventana = tk.Toplevel(ventana_padre)
         self.__ventana.title("Gestión de cursos")
-        self.__ventana.geometry("750x450")
       
 
         # Título de la ventana.
@@ -159,5 +158,3 @@ class CursoVista:
     # Cierra la ventana de cursos.
     def salir(self):
         self.__ventana.destroy()
-
-   
