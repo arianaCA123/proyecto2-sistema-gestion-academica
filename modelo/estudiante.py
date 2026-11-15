@@ -15,6 +15,8 @@ class Estudiante:
         self.set_carrera(carrera)
         self.set_correo(correo)
 
+    # Setters: guardan un valor en el atributo privado.
+    # Getters: devuelven el valor del atributo privado.
 
     def set_carnet(self, carnet):
         self.__carnet = carnet
@@ -65,6 +67,8 @@ class Estudiante:
     # Se ejecuta automáticamente cuando se hace print(estudiante) o str(estudiante).
     # El enunciado pide llamar a calcular_edad() aquí adentro.
     def __str__(self):
-        return f"Carné: {self.get_carnet()} - Nombre: {self.get_nombre()} - " \
-               f"Edad: {self.calcular_edad()} años - Carrera: {self.get_carrera()} - " \
-               f"Correo: {self.get_correo()}"
+        return (f"Carné: {self.get_carnet()} | "
+                f"Nombre: {self.get_nombre()} | "
+                f"Edad: {self.calcular_edad()} años | "
+                f"Carrera: {self.get_carrera()} | " 
+                f"Correo: {self.get_correo()}")
