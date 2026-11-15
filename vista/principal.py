@@ -1,13 +1,23 @@
+# VISTA - Clase Principal
+# Ventana principal del sistema: tiene un botón para abrir cada ventana secundaria.
+# No abre las ventanas ella misma: llama a los métodos que le entrega el controlador.
+
 import tkinter as tk
 from tkinter import ttk, messagebox
-from estudiante_vista import EstudianteVista
-from curso_vista import CursoVista
-from calificacion_vista import CalificacionVista
-from reportes_vista import ReportesVista
+from vista.estudiante_vista import EstudianteVista
+from vista.curso_vista import CursoVista
+from vista.calificacion_vista import CalificacionVista
+from vista.reportes_vista import ReportesVista
 
 class Principal(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        # Métodos del controlador que abren cada ventana (los entrega configurar_eventos)
+        self.__abrir_estudiantes = None
+        self.__abrir_cursos = None
+        self.__abrir_calificaciones = None
+        self.__abrir_reportes = None
 
         self.title("SISTEMA DE GESTION ACADEMICA")
         self.geometry("750x450")
@@ -21,12 +31,13 @@ class Principal(tk.Tk):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-        
+
         ttk.Label(
             self,
             text="Seleccione una opción:"
         ).grid(row=1, column=0, columnspan=3, pady=10)
 
+        # Botones: cada uno ejecuta su método click_boton_... al presionarse
         self.boton_gestion_estudiante = ttk.Button(
             self,
             text="Gestión de Estudiantes",
@@ -63,54 +74,37 @@ class Principal(tk.Tk):
             self,
             text="Acerca de",
             width=20,
-            command=self.acerca_de
+            command=self.click_boton_acerca_de
         )
         self.boton_acerca_de.grid(row=4, column=0, padx=10, pady=10, ipady=10)
 
         self.boton_salir = ttk.Button(
             self,
             text="Salir",
-            width=20
+            width=20,
+            command=self.destroy        # cierra la ventana principal y termina el programa
         )
         self.boton_salir.grid(row=4, column=1, padx=10, pady=10, ipady=10)
 
+    # El controlador le entrega los métodos que abren cada ventana
+    def configurar_eventos(self, abrir_estudiantes, abrir_cursos, abrir_calificaciones, abrir_reportes):
+        self.__abrir_estudiantes = abrir_estudiantes
+        self.__abrir_cursos = abrir_cursos
+        self.__abrir_calificaciones = abrir_calificaciones
+        self.__abrir_reportes = abrir_reportes
+
+    # Cada botón llama al método del controlador y le pasa esta ventana como ventana padre (self)
     def click_boton_estudiantes(self):
-        estudiante_vista = EstudianteVista(self)
-        estudiante_vista.mainloop()
+        self.__abrir_estudiantes(self)
 
     def click_boton_cursos(self):
-        curso_vista = CursoVista(self)
-        curso_vista.mainloop()
+        self.__abrir_cursos(self)
 
     def click_boton_calificaciones(self):
-        #calificacion_vista = CalificacionVista(self)
-        #calificacion_vista.mainloop()
-        pass
+        self.__abrir_calificaciones(self)
 
     def click_boton_reportes(self):
-        reportes_vista = ReportesVista(self)
-        reportes_vista.mainloop()
+        self.__abrir_reportes(self)
 
-    def acerca_de(self):
-        mensaje = """
-        SISTEMA DE GESTIÓN ACADÉMICA
-
-        Aplicación diseñada para facilitar la administración
-        de la información académica.
-
-        Funcionalidades:
-        • Gestión de estudiantes.
-        • Gestión de cursos.
-        • Registro de calificaciones.
-        • Generación de reportes.
-
-        Desarrollado en Python utilizando Tkinter.
-        Versión 1.0
-        """
-
-        messagebox.showinfo("Acerca de", mensaje)
-
-
-
-app = Principal()
-app.mainloop()
+    def click_boton_acerca_de(self):
+        messagebox.showinfo("Acerca de", "Sistema de Gestión Académica\nProyecto #2 - Desarrollo de Software II")
