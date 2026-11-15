@@ -383,7 +383,188 @@ class AppControlador:
     def salir_reportes(self):
         self.__vista_reportes.salir()
 
-    # =================== CALIFICACIONES ===================
+            # =================== CALIFICACIONES ===================
 
-    # FALTA: abrir_calificaciones(self, ventana_padre) y los métodos de sus botones.
-    # (sin abrir_calificaciones, iniciar() da error)
+    # Abre la ventana de calificaciones, conecta los botones y llena las listas y la tabla
+    def abrir_calificaciones(self, ventana_padre):
+        self.__vista_calificacion = CalificacionVista(ventana_padre)
+        self.__vista_calificacion.configurar_eventos(
+            self.guardar_calificacion,
+            self.consultar_calificacion,
+            self.modificar_calificacion,
+            self.eliminar_calificacion,
+            self.limpiar_campos_calificacion,
+            self.salir_calificacion
+        )
+        self.actualizar_combos_calificacion()
+        self.actualizar_tabla_calificacion()
+
+    # Llena las listas desplegables con los carnets y códigos que ya están registrados.
+    # Así la vista de calificaciones se conecta con estudiantes y cursos solo a través del controlador.
+    def actualizar_combos_calificacion(self):
+        carnets = []
+        for estudiante in self.__registro_estudiante.obtener_lista():
+            carnets.append(estudiante.get_carnet())
+
+        codigos = []
+        for curso in self.__registro_curso.listar_cursos():
+            codigos.append(curso.get_codigo())
+
+        self.__vista_calificacion.cargar_carnets(carnets)
+        self.__vista_calificacion.cargar_cursos(codigos)
+
+    # Vuelve a llenar la tabla. La calificación solo guarda el carnet y el código,
+    # por eso se arman dos diccionarios para mostrar también el nombre del estudiante y del curso.
+    def actualizar_tabla_calificacion(self):
+        nombres_estudiantes = {}
+        for estudiante in self.__registro_estudiante.obtener_lista():
+            nombres_estudiantes[estudiante.get_carnet()] = estudiante.get_nombre()
+
+        nombres_cursos = {}
+        for curso in self.__registro_curso.listar_cursos():
+            nombres_cursos[curso.get_codigo()] = curso.get_nombre()
+
+        self.__vista_calificacion.mostrar_tabla(
+            self.__registro_calificacion.obtener_lista(),
+            nombres_estudiantes,
+            nombres_cursos
+        )
+
+    # Revisa que la nota sea un número entre 0 y 100. Devuelve True si está bien y False si está mal.
+    def validar_nota(self, nota):
+        try:
+            valor = float(nota)         # si no se puede convertir a número, da error y cae en except
+        except ValueError:
+            return False
+
+        return valor >= 0 and valor <= 100
+
+    # Revisa que el año tenga 4 dígitos (solo números)
+    def validar_annio(self, annio):
+        return annio.isdigit() and len(annio) == 4
+
+    # Botón Guardar
+    def guardar_calificacion(self):
+        carnet = self.__vista_calificacion.obtener_carnet()
+        codigo = self.__vista_calificacion.obtener_curso()
+        nota = self.__vista_calificacion.obtener_nota()
+        ciclo = self.__vista_calificacion.obtener_ciclo()
+        annio = self.__vista_calificacion.obtener_annio()
+
+        if carnet == "" or codigo == "" or nota == "" or ciclo == "" or annio == "":
+            self.__vista_calificacion.mostrar_error("Debe llenar todos los campos.")
+            return
+
+        if self.validar_nota(nota) == False:
+            self.__vista_calificacion.mostrar_error("La nota debe ser un número entre 0 y 100.")
+            return
+
+        if self.validar_annio(annio) == False:
+            self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
+            return
+
+        # No se registran calificaciones de estudiantes o cursos que no existen
+        if self.__registro_estudiante.buscar_por_carnet(carnet) == None:
+            self.__vista_calificacion.mostrar_error("No existe un estudiante con ese carné.")
+            return
+
+        if self.__registro_curso.buscar_por_codigo(codigo) == None:
+            self.__vista_calificacion.mostrar_error("No existe un curso con ese código.")
+            return
+
+        # La nota se guarda como número (float) y el año como entero (int),
+        # porque los reportes comparan la nota con 70 y la formatean con decimales.
+        # El Modelo crea el objeto Calificacion; devuelve False si ya existe esa misma calificación.
+        if self.__registro_calificacion.crear_calificacion(carnet, codigo, float(nota), ciclo, int(annio)) == False:
+            self.__vista_calificacion.mostrar_error("Ya existe una calificación de ese estudiante en ese curso y período.")
+            return
+
+        self.__vista_calificacion.mostrar_mensaje("Calificación guardada correctamente.")
+        self.__vista_calificacion.limpiar_campos()
+        self.actualizar_tabla_calificacion()
+
+    # Botón Consultar: se identifica la calificación con carnet + curso + ciclo + año
+    def consultar_calificacion(self):
+        carnet = self.__vista_calificacion.obtener_carnet()
+        codigo = self.__vista_calificacion.obtener_curso()
+        ciclo = self.__vista_calificacion.obtener_ciclo()
+        annio = self.__vista_calificacion.obtener_annio()
+
+        if carnet == "" or codigo == "" or ciclo == "" or annio == "":
+            self.__vista_calificacion.mostrar_error("Seleccione el carné, el curso, el ciclo y digite el año para consultar.")
+            return
+
+        if self.validar_annio(annio) == False:
+            self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
+            return
+
+        calificacion = self.__registro_calificacion.buscar(carnet, codigo, ciclo, int(annio))
+
+        if calificacion == None:
+            self.__vista_calificacion.mostrar_error("No existe esa calificación.")
+        else:
+            self.__vista_calificacion.mostrar_calificacion(calificacion)         # llena los campos
+            self.__vista_calificacion.mostrar_mensaje(str(calificacion))
+
+    # Botón Modificar: primero se consulta (llena los campos), se cambia la nota y luego se modifica.
+    # Solo se puede cambiar la nota; carné, curso y período son lo que identifica la calificación.
+    def modificar_calificacion(self):
+        carnet = self.__vista_calificacion.obtener_carnet()
+        codigo = self.__vista_calificacion.obtener_curso()
+        nota = self.__vista_calificacion.obtener_nota()
+        ciclo = self.__vista_calificacion.obtener_ciclo()
+        annio = self.__vista_calificacion.obtener_annio()
+
+        if carnet == "" or codigo == "" or nota == "" or ciclo == "" or annio == "":
+            self.__vista_calificacion.mostrar_error("Primero consulte la calificación y luego modifique la nota.")
+            return
+
+        if self.validar_nota(nota) == False:
+            self.__vista_calificacion.mostrar_error("La nota debe ser un número entre 0 y 100.")
+            return
+
+        if self.validar_annio(annio) == False:
+            self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
+            return
+
+        # El Modelo devuelve False si no encontró la calificación
+        if self.__registro_calificacion.modificar_calificacion(carnet, codigo, ciclo, int(annio), float(nota)) == False:
+            self.__vista_calificacion.mostrar_error("No existe esa calificación.")
+        else:
+            self.__vista_calificacion.mostrar_mensaje("Calificación modificada correctamente.")
+            self.__vista_calificacion.limpiar_campos()
+            self.actualizar_tabla_calificacion()
+
+    # Botón Eliminar
+    def eliminar_calificacion(self):
+        carnet = self.__vista_calificacion.obtener_carnet()
+        codigo = self.__vista_calificacion.obtener_curso()
+        ciclo = self.__vista_calificacion.obtener_ciclo()
+        annio = self.__vista_calificacion.obtener_annio()
+
+        if carnet == "" or codigo == "" or ciclo == "" or annio == "":
+            self.__vista_calificacion.mostrar_error("Seleccione el carné, el curso, el ciclo y digite el año de la calificación a eliminar.")
+            return
+
+        if self.validar_annio(annio) == False:
+            self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
+            return
+
+        if self.__registro_calificacion.buscar(carnet, codigo, ciclo, int(annio)) == None:
+            self.__vista_calificacion.mostrar_error("No existe esa calificación.")
+            return
+
+        # Pide confirmación antes de eliminar
+        if self.__vista_calificacion.confirmar_eliminacion() == True:
+            self.__registro_calificacion.eliminar_calificacion(carnet, codigo, ciclo, int(annio))
+            self.__vista_calificacion.mostrar_mensaje("Calificación eliminada correctamente.")
+            self.__vista_calificacion.limpiar_campos()
+            self.actualizar_tabla_calificacion()
+
+    # Botón Limpiar
+    def limpiar_campos_calificacion(self):
+        self.__vista_calificacion.limpiar_campos()
+
+    # Botón Salir
+    def salir_calificacion(self):
+        self.__vista_calificacion.salir()
