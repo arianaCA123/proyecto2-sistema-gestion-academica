@@ -26,7 +26,7 @@ class RegistroCurso:
 
         return None
 
-    # Valida los datos, crea el curso y lo agrega a la lista.
+    
     # Devuelve un mensaje indicando el resultado.
     def registrar_curso(self, codigo, nombre, creditos, ciclo):
 
@@ -34,16 +34,11 @@ class RegistroCurso:
         codigo = codigo.strip()
         nombre = nombre.strip()
         ciclo = ciclo.strip()
-
-        # Verifica que ningún campo esté vacío.
-        #  Los créditos serán validados en el Controlador.
         
-        if codigo == "" or nombre == "" or ciclo == "":
-            return "Faltan datos por ingresar"
-
         # Verifica si ya existe un curso con ese código.
         if self.buscar_por_codigo(codigo) is not None:
             return "El curso ya existe"
+
 
         # El Modelo crea el objeto Curso.
         curso = Curso(codigo, nombre, creditos, ciclo)
@@ -58,11 +53,6 @@ class RegistroCurso:
         codigo = codigo.strip()
         nuevo_nombre = nuevo_nombre.strip()
         nuevo_ciclo = nuevo_ciclo.strip()
-
-        # Verifica que ningún campo esté vacío.
-        # Los créditos se validan en controlador.
-        if codigo == "" or nuevo_nombre == "" or nuevo_ciclo == "":
-            return "Faltan datos por ingresar"
 
         curso = self.buscar_por_codigo(codigo)
 

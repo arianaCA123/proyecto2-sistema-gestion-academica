@@ -3,8 +3,7 @@
 # Recibe lo que escribe el usuario, lo valida, le pide al Modelo que guarde, busque,
 # modifique o elimine, y le dice a la Vista qué mensaje o datos mostrar.
 # No crea objetos del dominio (eso lo hace el Modelo).
-#
-# Secciones: CURSOS (Michelle), ESTUDIANTES y REPORTES (Ariana), CALIFICACIONES (Carlos).
+
 
 from modelo.registro_estudiante import RegistroEstudiante
 from modelo.registro_curso import RegistroCurso
@@ -16,20 +15,20 @@ from vista.calificacion_vista import CalificacionVista
 from vista.reportes_vista import ReportesVista
 from vista.principal import Principal
 
-# FALTA: la sección de CALIFICACIONES (abrir_calificaciones y sus métodos), al final del archivo.
+from datetime import date   # Importa date para validar que las fechas de nacimiento existan en el calendario y sea valida.
 
 class AppControlador:
 
     # Constructor: crea los tres registros (el Modelo) y deja las ventanas sin abrir
     def __init__(self):
 
-        # Registro de estudiantes (Ariana)
+        # Registro de estudiantes 
         self.__registro_estudiante = RegistroEstudiante()
 
-        # Registro de cursos (yo)
+        # Registro de cursos 
         self.__registro_curso = RegistroCurso()
 
-        # Registro de calificaciones (Carlos)
+        # Registro de calificaciones 
         self.__registro_calificacion = RegistroCalificacion()
 
         # Vistas: al inicio las ventanas no están abiertas (None).
@@ -88,6 +87,9 @@ class AppControlador:
 
             # Actualiza la tabla para mostrar el nuevo curso.
             self.actualizar_tabla_curso()
+            
+            # Actualiza los cursos disponibles en el ComboBox de calificaciones.
+            self.actualizar_combos_calificacion()
 
             # Limpia los campos después del registro.
             self.limpiar_campos_curso()
@@ -180,11 +182,20 @@ class AppControlador:
         if curso is None:
             self.__vista_curso.mostrar_error("Curso no encontrado.")
             return
-
+        
+      
         # Pregunta si el usuario desea confirmar la eliminación.
         if self.__vista_curso.confirmar_eliminacion():
 
-            # Envía el código al Registro para eliminar el curso.
+            # Obtiene la lista de calificaciones.
+            calificaciones = self.__registro_calificacion.obtener_lista()
+
+            # Recorre una copia para eliminar las calificaciones del curso.
+            for calificacion in calificaciones[:]:
+                if calificacion.get_codigo_curso() == codigo:
+                    self.__registro_calificacion.eliminar_calificacion(calificacion.get_carnet_estudiante(),codigo,calificacion.get_ciclo(),calificacion.get_annio())
+
+            # Elimina el curso.
             mensaje = self.__registro_curso.eliminar_curso(codigo)
 
             self.__vista_curso.mostrar_mensaje(mensaje)
@@ -192,8 +203,12 @@ class AppControlador:
             # Actualiza la tabla después de eliminar.
             self.actualizar_tabla_curso()
 
+            # Actualiza los cursos disponibles en el ComboBox de calificaciones.
+            self.actualizar_combos_calificacion()
+
             # Limpia los campos.
             self.limpiar_campos_curso()
+        
 
     # Actualiza la tabla de cursos.
     def actualizar_tabla_curso(self):
@@ -236,23 +251,30 @@ class AppControlador:
             self.modificar_estudiante,
             self.eliminar_estudiante,
             self.limpiar_campos_estudiante,
-            self.salir_estudiante
-        )
+            self.salir_estudiante)
+        
         self.__vista_estudiante.mostrar_tabla(self.__registro_estudiante.obtener_lista())
 
-    # Revisa que la fecha tenga el formato dd/mm/aaaa (si viene mal, calcular_edad daría error).
+    # Revisa que la fecha tenga el formato dd/mm/aaaa validos
     # Devuelve True si está bien y False si está mal.
+    
     def validar_fecha(self, fecha):
-        partes = fecha.split("/")
-
-        if len(partes) != 3:            # debe tener día, mes y año
-            return False
-
-        for parte in partes:
-            if parte.isdigit() == False:    # cada parte debe ser solo números
+        try:
+            partes = fecha.split("/")
+            
+            if len(partes) != 3:
                 return False
 
-        return True
+            dia = int(partes[0])
+            mes = int(partes[1])
+            anio = int(partes[2])
+
+            date(anio, mes, dia)
+
+            return True
+
+        except ValueError:
+            return False
 
     # Botón Guardar
     def guardar_estudiante(self):
@@ -278,6 +300,9 @@ class AppControlador:
         self.__vista_estudiante.mostrar_mensaje("Estudiante guardado correctamente.")
         self.__vista_estudiante.limpiar_campos()
         self.__vista_estudiante.mostrar_tabla(self.__registro_estudiante.obtener_lista())
+        
+        # Actualiza los carnés disponibles en el ComboBox de calificaciones.
+        self.actualizar_combos_calificacion()
 
     # Botón Consultar
     def consultar_estudiante(self):
@@ -320,6 +345,8 @@ class AppControlador:
             self.__vista_estudiante.limpiar_campos()
             self.__vista_estudiante.mostrar_tabla(self.__registro_estudiante.obtener_lista())
 
+    
+    
     # Botón Eliminar
     def eliminar_estudiante(self):
         carnet = self.__vista_estudiante.obtener_carnet()
@@ -332,12 +359,31 @@ class AppControlador:
             self.__vista_estudiante.mostrar_error("No existe un estudiante con ese carné.")
             return
 
-        # Pide confirmación antes de eliminar
+        # Pide confirmación antes de eliminar.
+        #Si el usuario presiona Sí, busca todas las calificaciones de ese estudiante y las elimina.
         if self.__vista_estudiante.confirmar_eliminacion() == True:
+
+            # Obtiene la lista de calificaciones.
+            calificaciones = self.__registro_calificacion.obtener_lista()
+
+            # Recorre una copia para eliminar las calificaciones del estudiante.
+            for calificacion in calificaciones[:]:
+                if calificacion.get_carnet_estudiante() == carnet:
+                    self.__registro_calificacion.eliminar_calificacion(carnet,calificacion.get_codigo_curso(),calificacion.get_ciclo(),calificacion.get_annio())
+
+            # Elimina al estudiante.
             self.__registro_estudiante.eliminar_estudiante(carnet)
-            self.__vista_estudiante.mostrar_mensaje("Estudiante eliminado correctamente.")
+
+            self.__vista_estudiante.mostrar_mensaje("Estudiante y sus calificaciones eliminados correctamente.")
+
+            # Limpia los campos y actualiza la tabla.
             self.__vista_estudiante.limpiar_campos()
             self.__vista_estudiante.mostrar_tabla(self.__registro_estudiante.obtener_lista())
+
+            # Actualiza los carnés disponibles en el ComboBox de calificaciones.
+            self.actualizar_combos_calificacion()
+    
+    
 
     # Botón Limpiar
     def limpiar_campos_estudiante(self):
@@ -402,7 +448,13 @@ class AppControlador:
     # Llena las listas desplegables con los carnets y códigos que ya están registrados.
     # Así la vista de calificaciones se conecta con estudiantes y cursos solo a través del controlador.
     def actualizar_combos_calificacion(self):
+        
+         # Evita actualizar los ComboBox si la ventana de calificaciones está cerrada.
+        if self.__vista_calificacion is None:
+            return
+        
         carnets = []
+        
         for estudiante in self.__registro_estudiante.obtener_lista():
             carnets.append(estudiante.get_carnet())
 
@@ -472,10 +524,9 @@ class AppControlador:
             self.__vista_calificacion.mostrar_error("No existe un curso con ese código.")
             return
 
-        # La nota se guarda como número (float) y el año como entero (int),
-        # porque los reportes comparan la nota con 70 y la formatean con decimales.
+        # La nota se guarda como número (float) y el año como texto (str).
         # El Modelo crea el objeto Calificacion; devuelve False si ya existe esa misma calificación.
-        if self.__registro_calificacion.crear_calificacion(carnet, codigo, float(nota), ciclo, int(annio)) == False:
+        if self.__registro_calificacion.crear_calificacion(carnet, codigo, float(nota), ciclo, annio) == False:
             self.__vista_calificacion.mostrar_error("Ya existe una calificación de ese estudiante en ese curso y período.")
             return
 
@@ -498,7 +549,7 @@ class AppControlador:
             self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
             return
 
-        calificacion = self.__registro_calificacion.buscar(carnet, codigo, ciclo, int(annio))
+        calificacion = self.__registro_calificacion.buscar(carnet, codigo, ciclo, annio)
 
         if calificacion == None:
             self.__vista_calificacion.mostrar_error("No existe esa calificación.")
@@ -528,7 +579,7 @@ class AppControlador:
             return
 
         # El Modelo devuelve False si no encontró la calificación
-        if self.__registro_calificacion.modificar_calificacion(carnet, codigo, ciclo, int(annio), float(nota)) == False:
+        if self.__registro_calificacion.modificar_calificacion(carnet, codigo, ciclo, annio, float(nota)) == False:
             self.__vista_calificacion.mostrar_error("No existe esa calificación.")
         else:
             self.__vista_calificacion.mostrar_mensaje("Calificación modificada correctamente.")
@@ -550,13 +601,14 @@ class AppControlador:
             self.__vista_calificacion.mostrar_error("El año debe tener 4 dígitos, por ejemplo 2026.")
             return
 
-        if self.__registro_calificacion.buscar(carnet, codigo, ciclo, int(annio)) == None:
+        if self.__registro_calificacion.buscar(carnet, codigo, ciclo, annio) == None:
+                                               
             self.__vista_calificacion.mostrar_error("No existe esa calificación.")
             return
 
         # Pide confirmación antes de eliminar
         if self.__vista_calificacion.confirmar_eliminacion() == True:
-            self.__registro_calificacion.eliminar_calificacion(carnet, codigo, ciclo, int(annio))
+            self.__registro_calificacion.eliminar_calificacion(carnet, codigo, ciclo, annio)
             self.__vista_calificacion.mostrar_mensaje("Calificación eliminada correctamente.")
             self.__vista_calificacion.limpiar_campos()
             self.actualizar_tabla_calificacion()
@@ -567,4 +619,6 @@ class AppControlador:
 
     # Botón Salir
     def salir_calificacion(self):
-        self.__vista_calificacion.salir()
+        if self.__vista_calificacion is not None:
+            self.__vista_calificacion.salir()
+            self.__vista_calificacion = None

@@ -59,19 +59,33 @@ class RegistroEstudiante:
             lineas.append(str(estudiante))
 
         return lineas
-
-    # Estudiantes aprobados (nota mayor o igual a 70).
-    # Recibe la lista de calificaciones, que se la pasa el controlador.
+   
+   
+   # Genera el reporte de estudiantes aprobados sin repetir el carné
+   # mostrando debajo los cursos que cada estudiante aprobó.
+   
     def reporte_aprobados(self, calificaciones):
         lineas = []
 
-        for calificacion in calificaciones:
-            if calificacion.get_nota() >= 70:
-                lineas.append(f"Carné: {calificacion.get_carnet_estudiante()} | "
-                              f"Curso: {calificacion.get_codigo_curso()} | "
+        for estudiante in self.__estudiantes:
+
+            encontro_aprobada = False
+
+            for calificacion in calificaciones:
+
+                if (calificacion.get_carnet_estudiante() == estudiante.get_carnet()
+                        and calificacion.get_nota() >= 70):
+
+                    if encontro_aprobada == False:
+                        lineas.append(f"Carné: {estudiante.get_carnet()}")
+                        encontro_aprobada = True
+
+                    lineas.append(f"    Curso: {calificacion.get_codigo_curso()} | "
                               f"Nota: {calificacion.get_nota():.2f}")
 
         return lineas
+    
+    
 
     # Estudiantes reprobados (nota menor a 70)
     def reporte_reprobados(self, calificaciones):

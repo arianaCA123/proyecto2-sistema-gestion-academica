@@ -12,11 +12,13 @@ class CursoVista:
         # Crea una ventana secundaria.
         self.__ventana = tk.Toplevel(ventana_padre)
         self.__ventana.title("Gestión de cursos")
+        self.__ventana.resizable(False, False)
       
 
         # Título de la ventana.
-        tk.Label(self.__ventana,text="Registro de cursos",font=("Arial", 15, "bold")).grid(row=0, column=0, columnspan=4, pady=15)
-
+        tk.Label(self.__ventana,text="Registro de cursos", font=("Arial", 15, "bold")).grid(row=0, column=0, columnspan=2, pady=(15,10))
+      
+        
         # campo para ingresar el código del curso.
         tk.Label(self.__ventana, text="Código:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.__entrada_codigo = tk.Entry(self.__ventana, width=30)
@@ -37,7 +39,7 @@ class CursoVista:
         # campo para ingresar el ciclo del curso.
         # Uso de Combobox para que la eleccion del ciclo sea una lista despeglable  (para que se tome como numero romano)
         tk.Label(self.__ventana, text="Ciclo:").grid(row=4, column=0, padx=10, pady=5, sticky="e")
-        self.__entrada_ciclo = ttk.Combobox(self.__ventana,values=["I", "II", "III", "IV", "V", "VI", "VII", "VIII"],state="readonly",width=27)
+        self.__entrada_ciclo = ttk.Combobox(self.__ventana,values=["I", "II", "III"],state="readonly",width=27)
         self.__entrada_ciclo.grid(row=4, column=1, columnspan=3, padx=10, pady=5, sticky="w")
 
         
@@ -153,7 +155,7 @@ class CursoVista:
 
     # Solicita confirmación antes de eliminar un curso si / no.
     def confirmar_eliminacion(self):
-        return messagebox.askyesno("Confirmación","¿Desea eliminar este curso?")
+        return messagebox.askyesno("Confirmación","¿Desea eliminar este curso y todas sus calificaciones?")
 
     # Cierra la ventana de cursos.
     def salir(self):

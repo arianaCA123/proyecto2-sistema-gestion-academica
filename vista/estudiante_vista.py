@@ -10,7 +10,7 @@ class EstudianteVista:
         self.__ventana.title("Gestión de estudiantes")
         self.__ventana.resizable(False, False)
 
-        tk.Label(self.__ventana, text="Gestión de estudiantes", font=("Arial", 15, "bold")).grid(
+        tk.Label(self.__ventana, text="Registro de estudiantes", font=("Arial", 15, "bold")).grid(
             row=0, column=0, columnspan=2, pady=(15, 10)
         )
 
@@ -145,7 +145,7 @@ class EstudianteVista:
 
     # askyesno devuelve True si el usuario presiona "Sí"
     def confirmar_eliminacion(self):
-        return messagebox.askyesno("Confirmación", "¿Desea eliminar este estudiante?")
+        return messagebox.askyesno("Confirmación", "¿Desea eliminar este estudiante y todas sus calificaciones?")
 
     # Cierra la ventana
     def salir(self):

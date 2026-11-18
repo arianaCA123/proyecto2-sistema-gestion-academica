@@ -5,7 +5,7 @@ from tkinter import ttk, messagebox     # ttk tiene el Combobox y el Treeview
 class CalificacionVista:
     def __init__(self, ventana_padre):
         self.__ventana = tk.Toplevel(ventana_padre)
-        self.__ventana.title("Registro de calificaciones")
+        self.__ventana.title("Géstion de calificaciones")
         self.__ventana.resizable(False, False)
 
         tk.Label(self.__ventana, text="Registro de calificaciones", font=("Arial", 15, "bold")).grid(

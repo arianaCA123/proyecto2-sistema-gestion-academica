@@ -1,6 +1,5 @@
 from controlador.app_controlador import AppControlador
 
-
 def main():
     controlador = AppControlador()
     controlador.iniciar()
